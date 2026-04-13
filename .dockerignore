@@ -1,0 +1,21 @@
+# .dockerignore
+.venv/
+.git/
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+mlruns/
+mlruns.db
+*.egg-info/
+dist/
+build/
+.env
+.env.*
+tests/
+*.md
+docker/
+.dockerignore
+nse_cache.sqlite

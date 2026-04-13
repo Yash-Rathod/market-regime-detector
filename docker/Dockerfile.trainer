@@ -1,0 +1,47 @@
+# ── Stage 1: dependency builder ──────────────────────────────────────────────
+FROM python:3.11-slim AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc \
+        libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+COPY requirements.txt .
+
+RUN pip install --upgrade pip \
+    && pip install --prefix=/install --no-cache-dir -r requirements.txt
+
+
+# ── Stage 2: final runtime image ─────────────────────────────────────────────
+FROM python:3.11-slim AS runtime
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libpq5 \
+        gosu \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --gid 1001 appgroup \
+    && useradd --uid 1001 --gid appgroup --shell /bin/bash --create-home appuser
+
+WORKDIR /app
+
+ENV PYTHONPATH=/app
+
+COPY --from=builder /install /usr/local
+
+COPY --chown=appuser:appgroup app/        ./app/
+COPY --chown=appuser:appgroup training/   ./training/
+COPY --chown=appuser:appgroup pipelines/  ./pipelines/
+COPY --chown=appuser:appgroup pyproject.toml .
+
+RUN mkdir -p mlartifacts \
+    && chown -R appuser:appgroup mlartifacts
+
+RUN printf '#!/bin/sh\nchown -R appuser:appgroup /app/mlartifacts\nexec gosu appuser "$@"\n' \
+    > /entrypoint.sh && chmod +x /entrypoint.sh
+
+# Entrypoint runs as root to fix volume permissions, then drops to appuser
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["python", "training/train.py"]

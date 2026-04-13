@@ -1,0 +1,20 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Environment
+.env
+.env.*
+
+# ML artifacts
+*.pkl
+mlruns/
+mlruns.db
+mlartifacts/
+
+# Test / scratch
+test.py
+nse_cache.sqlite
