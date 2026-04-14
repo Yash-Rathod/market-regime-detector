@@ -35,10 +35,12 @@ COPY --chown=appuser:appgroup training/   ./training/
 COPY --chown=appuser:appgroup pipelines/  ./pipelines/
 COPY --chown=appuser:appgroup pyproject.toml .
 
-# Copy pre-trained model artifacts directly into the image
-# This avoids the init container complexity for our current setup
-# In production these would be pulled from S3/GCS at startup
-COPY --chown=appuser:appgroup mlartifacts/ ./mlartifacts/
+# Copy pre-trained model artifacts
+# These are committed to git so Jenkins has access to them
+# In production: replace this with a startup script that pulls from S3
+COPY --chown=appuser:appgroup mlartifacts/model.pkl         ./mlartifacts/model.pkl
+COPY --chown=appuser:appgroup mlartifacts/label_encoder.pkl ./mlartifacts/label_encoder.pkl
+COPY --chown=appuser:appgroup mlartifacts/class_mapping.json ./mlartifacts/class_mapping.json
 
 RUN chown -R appuser:appgroup /app
 

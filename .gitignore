@@ -10,11 +10,15 @@ __pycache__/
 .env.*
 
 # ML artifacts
-#*.pkl
 mlruns/
 mlruns.db
-mlartifacts/
+nse_cache.sqlite
+# Allow model artifacts but not MLflow run metadata
+!mlartifacts/
+mlartifacts/mlflow*/
+!mlartifacts/model.pkl
+!mlartifacts/label_encoder.pkl
+!mlartifacts/class_mapping.json
 
 # Test / scratch
 test.py
-nse_cache.sqlite
