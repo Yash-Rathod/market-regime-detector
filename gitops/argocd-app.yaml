@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: market-regime-detector
+  namespace: argocd
+  labels:
+    project: market-regime-detector
+    environment: development
+  # Finalizer ensures ArgoCD cleans up k8s resources when this app is deleted
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  # Source — which Git repo and path ArgoCD watches
+  source:
+    repoURL: https://github.com/Yash-Rathod/market-regime-k8s.git
+    targetRevision: HEAD
+    path: k8s/base
+
+  # Destination — which cluster and namespace to deploy to
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: market-regime
+
+  # Sync policy — this is what makes it fully automatic
+  syncPolicy:
+    automated:
+      prune: true      # delete k8s resources removed from Git
+      selfHeal: true   # revert manual kubectl changes automatically
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
