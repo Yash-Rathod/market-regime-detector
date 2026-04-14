@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: market-regime-app
+  namespace: market-regime
+  labels:
+    app: market-regime-app
+    version: "0.1.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: market-regime-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: market-regime-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port:   "8000"
+        prometheus.io/path:   "/metrics"
+    spec:
+      containers:
+        - name: market-regime-app
+          image: yrathod30/market-regime-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: market-regime-secret
+                  key: DATABASE_URL
+            - name: APP_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: market-regime-config
+                  key: APP_VERSION
+            - name: ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: market-regime-config
+                  key: ENVIRONMENT
+            - name: MODEL_PATH
+              value: "/app/mlartifacts/model.pkl"
+            - name: ENCODER_PATH
+              value: "/app/mlartifacts/label_encoder.pkl"
+            - name: MAPPING_PATH
+              value: "/app/mlartifacts/class_mapping.json"
+            - name: MLFLOW_TRACKING_URI
+              value: "http://localhost:5001"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu:    "250m"
+            limits:
+              memory: "512Mi"
+              cpu:    "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 3

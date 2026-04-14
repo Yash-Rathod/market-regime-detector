@@ -10,7 +10,7 @@ __pycache__/
 .env.*
 
 # ML artifacts
-*.pkl
+#*.pkl
 mlruns/
 mlruns.db
 mlartifacts/
