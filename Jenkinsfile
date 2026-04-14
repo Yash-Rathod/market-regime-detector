@@ -89,7 +89,11 @@ pipeline {
         stage("Push") {
             // Only push from the main branch
             when {
-                expression { env.BRANCH_NAME == 'main' }
+                anyOf {
+                    branch "main"
+                    expression { env.GIT_BRANCH == "main" }
+                    expression { env.GIT_BRANCH == "origin/main" }
+                }
             }
             steps {
                 script {
@@ -112,7 +116,11 @@ pipeline {
         // ── Stage 5: Update GitOps manifest ─────────────────────────────────
         stage("Update Manifest") {
             when {
-                expression { env.BRANCH_NAME == 'main' }
+                anyOf {
+                    branch "main"
+                    expression { env.GIT_BRANCH == "main" }
+                    expression { env.GIT_BRANCH == "origin/main" }
+                }
             }
             steps {
                 script {
